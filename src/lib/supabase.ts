@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -16,7 +16,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 });
 
 // Admin client for server-side operations
-export const createAdminClient = () => {
+export const createAdminClient = (): SupabaseClient<Database> => {
    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
    if (!serviceRoleKey) {
