@@ -48,6 +48,26 @@ export const MotivationalContent: React.FC<MotivationalContentProps> = ({ habits
         await loadContent();
     };
 
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6">
+                    <div className="animate-pulse">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-blue-200 rounded-full"></div>
+                            <div className="h-4 bg-blue-200 rounded w-32"></div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="h-4 bg-blue-200 rounded w-full"></div>
+                            <div className="h-4 bg-blue-200 rounded w-3/4"></div>
+                        </div>
+                        <div className="h-3 bg-blue-200 rounded w-24 mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Daily Quote */}
@@ -66,9 +86,10 @@ export const MotivationalContent: React.FC<MotivationalContentProps> = ({ habits
                         </div>
                         <button
                             onClick={refreshContent}
-                            className="p-2 rounded-lg hover:bg-white/50 transition-colors"
+                            disabled={loading}
+                            className="p-2 rounded-lg hover:bg-white/50 transition-colors disabled:opacity-50"
                         >
-                            <RefreshCw className="w-4 h-4 text-gray-600" />
+                            <RefreshCw className={`w-4 h-4 text-gray-600 ${loading ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                     <blockquote className="text-gray-700 text-base italic mb-3">
