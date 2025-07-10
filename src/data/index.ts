@@ -1,6 +1,6 @@
 import { Habit, Quote, HealthTip, HabitCategory } from "@/types";
 
-export const predefinedHabits: Omit<Habit, "id" | "createdAt">[] = [
+export const predefinedHabits: Omit<Habit, "id" | "userId" | "createdAt" | "updatedAt" | "startDate" | "isActive">[] = [
    {
       name: "No Smoking",
       category: "smoking",
@@ -43,7 +43,7 @@ export const predefinedHabits: Omit<Habit, "id" | "createdAt">[] = [
    },
 ];
 
-export const motivationalQuotes: Quote[] = [
+export const motivationalQuotes: Omit<Quote, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version">[] = [
    // Smoking
    {
       text: "The best time to plant a tree was 20 years ago. The second best time is now.",
@@ -130,21 +130,19 @@ export const motivationalQuotes: Quote[] = [
    },
 ];
 
-export const healthTips: HealthTip[] = [
+export const healthTips: Omit<HealthTip, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version">[] = [
    // Smoking
    {
       title: "Immediate Benefits of Quitting Smoking",
       content:
          "Within 20 minutes of quitting, your heart rate and blood pressure drop. Within 12 hours, carbon monoxide levels normalize. Within 2-3 months, circulation improves and lung function increases.",
       category: "smoking",
-      source: "American Cancer Society",
    },
    {
       title: "Managing Smoking Cravings",
       content:
          "Cravings typically last 3-5 minutes. Try deep breathing, drinking water, chewing gum, or engaging in physical activity. The urge will pass.",
       category: "smoking",
-      source: "CDC",
    },
 
    // Drinking
@@ -153,14 +151,12 @@ export const healthTips: HealthTip[] = [
       content:
          "Reducing alcohol intake improves liver function, enhances sleep quality, boosts immune system, and can lead to better mental clarity and mood stability.",
       category: "drinking",
-      source: "National Institute on Alcohol Abuse",
    },
    {
       title: "Healthy Alternatives to Alcohol",
       content:
          "Try sparkling water with fruit, herbal teas, or mocktails. Engage in activities like exercise, reading, or hobbies to replace drinking habits.",
       category: "drinking",
-      source: "Mayo Clinic",
    },
 
    // Adult Content
@@ -169,14 +165,12 @@ export const healthTips: HealthTip[] = [
       content:
          "Reducing exposure to explicit content can improve focus, relationships, and self-esteem. It helps develop healthier attitudes towards intimacy and relationships.",
       category: "adult-content",
-      source: "American Psychological Association",
    },
    {
       title: "Building Healthy Habits",
       content:
          "Replace screen time with physical activities, reading, learning new skills, or socializing. Create a structured daily routine to minimize idle time.",
       category: "adult-content",
-      source: "Psychology Today",
    },
 
    // Social Media
@@ -185,14 +179,12 @@ export const healthTips: HealthTip[] = [
       content:
          "Limiting social media use can reduce anxiety, improve sleep, increase productivity, and enhance face-to-face relationships. Start with designated phone-free hours.",
       category: "social-media",
-      source: "Harvard Health Publishing",
    },
    {
       title: "Mindful Social Media Use",
       content:
          "Set specific times for checking social media, unfollow accounts that make you feel negative, and engage more in real-world activities and relationships.",
       category: "social-media",
-      source: "American Psychological Association",
    },
 
    // Junk Food
@@ -201,25 +193,23 @@ export const healthTips: HealthTip[] = [
       content:
          "Replace processed foods with whole foods like fruits, vegetables, lean proteins, and whole grains. This improves energy levels, mood, and overall health.",
       category: "junk-food",
-      source: "American Heart Association",
    },
    {
       title: "Breaking Junk Food Cravings",
       content:
          "Stay hydrated, eat regular balanced meals, get adequate sleep, and keep healthy snacks available. Cravings often indicate nutritional deficiencies.",
       category: "junk-food",
-      source: "Academy of Nutrition and Dietetics",
    },
 ];
 
-export const getRandomQuote = (category?: HabitCategory): Quote => {
+export const getRandomQuote = (category?: HabitCategory): Omit<Quote, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"> => {
    const quotes = category
       ? motivationalQuotes.filter((q) => q.category === category)
       : motivationalQuotes;
    return quotes[Math.floor(Math.random() * quotes.length)];
 };
 
-export const getHealthTip = (category: HabitCategory): HealthTip => {
+export const getHealthTip = (category: HabitCategory): Omit<HealthTip, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"> => {
    const tips = healthTips.filter((tip) => tip.category === category);
    return tips[Math.floor(Math.random() * tips.length)];
 };
