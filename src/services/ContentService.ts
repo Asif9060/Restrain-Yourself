@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { Quote, HealthTip, HabitCategory } from "@/types";
+import { Json } from "@/types/database";
 
 export class ContentService {
    // Motivational Quotes
@@ -341,14 +342,16 @@ export class ContentService {
       userId?: string
    ): Promise<void> {
       try {
-         await supabase.from("audit_logs").insert({
+         const auditLogEntry = {
             table_name: tableName,
             record_id: recordId,
             action,
-            old_values: oldValues,
-            new_values: newValues,
+            old_values: oldValues as Json | null,
+            new_values: newValues as Json | null,
             user_id: userId || null,
-         });
+         };
+         
+         await supabase.from("audit_logs").insert(auditLogEntry);
       } catch (error) {
          // Don't throw here as audit logging is not critical
          console.error("Error logging audit action:", error);
