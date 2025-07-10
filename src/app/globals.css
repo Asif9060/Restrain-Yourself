@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+   scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+   min-height: 100vh;
+   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+   width: 8px;
+}
+
+::-webkit-scrollbar-track {
+   background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+   background: #cbd5e1;
+   border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+   background: #94a3b8;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-all {
+   transition-property: all;
+   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+   transition-duration: 150ms;
+}
+
+/* Focus styles for accessibility */
+.focus-ring:focus {
+   outline: none;
+   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Custom animations */
+@keyframes fadeInUp {
+   from {
+      opacity: 0;
+      transform: translateY(20px);
+   }
+   to {
+      opacity: 1;
+      transform: translateY(0);
+   }
+}
+
+.animate-fade-in-up {
+   animation: fadeInUp 0.5s ease-out;
+}
+
+/* Gradient backgrounds */
+.gradient-bg {
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-bg-light {
+   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* Custom scrollbar for habit list */
+.habits-scroll::-webkit-scrollbar {
+   width: 6px;
+}
+
+.habits-scroll::-webkit-scrollbar-track {
+   background: transparent;
+}
+
+.habits-scroll::-webkit-scrollbar-thumb {
+   background: #cbd5e1;
+   border-radius: 3px;
+}
+
+.habits-scroll::-webkit-scrollbar-thumb:hover {
+   background: #94a3b8;
+}
+
+/* Compact spacing utilities */
+.compact-spacing > * + * {
+   margin-top: 0.75rem;
+}
+
+/* Prevent layout shift */
+.prevent-layout-shift {
+   min-height: 100vh;
+   overflow: hidden;
+}
+
+/* Square layout utilities */
+.square-layout {
+   aspect-ratio: 1;
+   max-width: 100%;
+}
+
+/* Centered content layout */
+.centered-layout {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   min-height: calc(100vh - 4rem);
+}
+
+/* Better grid spacing */
+.grid-balanced {
+   display: grid;
+   gap: 1.5rem;
+   height: calc(100vh - 5rem);
+   align-items: start;
 }

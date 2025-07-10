@@ -1,103 +1,239 @@
-import Image from "next/image";
+
+'use client';
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { BarChart3, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { format, isToday } from 'date-fns';
+
+import { Calendar } from '@/components/Calendar';
+import { RealTimeHabitCard } from '@/components/RealTimeHabitCard';
+import { AddHabitModal } from '@/components/AddHabitModal';
+import { StatsModal } from '@/components/StatsModal';
+import { MotivationalContent } from '@/components/MotivationalContent';
+import { Header } from '@/components/Header';
+import { DateInfo } from '@/components/DateInfo';
+import { EmptyState } from '@/components/EmptyState';
+import { UsernameModal } from '@/components/UsernameModal';
+import { AdminContentManager } from '@/components/AdminContentManager';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRealTimeHabitTracker } from '@/hooks/useRealTimeHabitTracker';
+import { Habit } from '@/types';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { user, loading: authLoading } = useAuth();
+  const {
+    habits,
+    entries,
+    selectedDate,
+    currentMonth,
+    loadingStates,
+    errors,
+    isOnline,
+    optimisticUpdates,
+    offlineQueue,
+    setSelectedDate,
+    setCurrentMonth,
+    addHabit,
+    toggleHabitEntry,
+    getTodayStats,
+    clearError,
+  } = useRealTimeHabitTracker();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const [showAddHabit, setShowAddHabit] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+
+  const todayStats = getTodayStats();
+  const isSelectedDateToday = isToday(selectedDate);
+
+  const handleViewStats = (habit: Habit) => {
+    setSelectedHabit(habit);
+    setShowStats(true);
+  };
+
+  const handleCloseStats = () => {
+    setShowStats(false);
+    setSelectedHabit(null);
+  };
+
+  const handleRetryToggle = (habitId: string) => {
+    // Find the last entry for this habit and retry the toggle
+    const lastEntry = entries.find(e => e.habitId === habitId);
+    if (lastEntry) {
+      toggleHabitEntry(habitId, !lastEntry.completed);
+    }
+  };
+
+  // Show loading spinner while auth is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show username modal if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <UsernameModal isOpen={true} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="prevent-layout-shift bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Network Status Indicator */}
+      {!isOnline && (
+        <div className="fixed top-0 left-0 right-0 bg-orange-500 text-white px-4 py-2 text-sm text-center z-50">
+          <div className="flex items-center justify-center gap-2">
+            <WifiOff className="w-4 h-4" />
+            You&apos;re offline. Changes will sync when connection is restored.
+            {offlineQueue > 0 && <span>({offlineQueue} pending)</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <Header
+        todayStats={todayStats}
+        onAddHabit={() => setShowAddHabit(true)}
+        onOpenAdmin={() => setShowAdmin(true)}
+        showTodayStats={isSelectedDateToday && habits.length > 0}
+      />
+
+      {/* Main Content */}
+      <main className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${!isOnline ? 'pt-16' : ''}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-5rem)]">
+          {/* Left Column - Calendar */}
+          <div className="lg:col-span-1 flex flex-col">
+            <Calendar
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              habits={habits}
+              entries={entries}
+              currentMonth={currentMonth}
+              onMonthChange={setCurrentMonth}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+            {/* Date Info below Calendar */}
+            <div className="mt-4">
+              <DateInfo selectedDate={selectedDate} todayStats={todayStats} />
+            </div>
+          </div>
+
+          {/* Middle Column - Habits (Larger) */}
+          <div className="lg:col-span-1 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-800">
+                {isSelectedDateToday ? `Today's Habits` : `Habits for ${format(selectedDate, 'MMM do')}`}
+              </h2>
+
+              <div className="flex items-center gap-3">
+                {habits.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <BarChart3 className="w-4 h-4" />
+                    <span>{habits.length} habit{habits.length !== 1 ? 's' : ''}</span>
+                  </div>
+                )}
+
+                {/* Connection status */}
+                <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isOnline
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-orange-100 text-orange-700'
+                  }`}>
+                  {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                  {isOnline ? 'Online' : 'Offline'}
+                </div>
+              </div>
+            </div>
+
+            {/* Habits Container - Full Height */}
+            <div className="flex-1 overflow-y-auto habits-scroll">
+              {habits.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <EmptyState onAddHabit={() => setShowAddHabit(true)} />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {habits.map((habit: Habit, index: number) => (
+                    <motion.div
+                      key={habit.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <RealTimeHabitCard
+                        habit={habit}
+                        selectedDate={selectedDate}
+                        entries={entries}
+                        onToggle={toggleHabitEntry}
+                        onViewStats={handleViewStats}
+                        isLoading={loadingStates[`toggle-${habit.id}`] || false}
+                        hasError={!!errors[`toggle-${habit.id}`]}
+                        errorMessage={errors[`toggle-${habit.id}`]}
+                        isOptimistic={optimisticUpdates.some(u => u.data.habitId === habit.id)}
+                        isOnline={isOnline}
+                        onRetry={handleRetryToggle}
+                        onClearError={clearError}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Motivational Content */}
+          <div className="lg:col-span-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto habits-scroll">
+              <MotivationalContent habits={habits} />
+            </div>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* Modals */}
+      <AddHabitModal
+        isOpen={showAddHabit}
+        onClose={() => setShowAddHabit(false)}
+        onAddHabit={addHabit}
+        existingHabits={habits}
+      />
+
+      <StatsModal
+        habit={showStats ? selectedHabit : null}
+        entries={entries}
+        onClose={handleCloseStats}
+      />
+
+      {/* Error Display for general errors */}
+      {Object.keys(errors).filter(key => !key.startsWith('toggle-')).map(key => (
+        <div key={key} className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm">{errors[key]}</p>
+            <button
+              onClick={() => clearError(key)}
+              className="text-white hover:text-gray-200"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Admin Panel */}
+      {showAdmin && (
+        <AdminContentManager
+          onClose={() => setShowAdmin(false)}
+        />
+      )}
     </div>
   );
 }
