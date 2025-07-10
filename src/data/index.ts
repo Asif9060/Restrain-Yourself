@@ -1,6 +1,9 @@
 import { Habit, Quote, HealthTip, HabitCategory } from "@/types";
 
-export const predefinedHabits: Omit<Habit, "id" | "userId" | "createdAt" | "updatedAt" | "startDate" | "isActive">[] = [
+export const predefinedHabits: Omit<
+   Habit,
+   "id" | "userId" | "createdAt" | "updatedAt" | "startDate" | "isActive"
+>[] = [
    {
       name: "No Smoking",
       category: "smoking",
@@ -43,7 +46,10 @@ export const predefinedHabits: Omit<Habit, "id" | "userId" | "createdAt" | "upda
    },
 ];
 
-export const motivationalQuotes: Omit<Quote, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version">[] = [
+export const motivationalQuotes: Omit<
+   Quote,
+   "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"
+>[] = [
    // Smoking
    {
       text: "The best time to plant a tree was 20 years ago. The second best time is now.",
@@ -130,7 +136,10 @@ export const motivationalQuotes: Omit<Quote, "id" | "isActive" | "createdAt" | "
    },
 ];
 
-export const healthTips: Omit<HealthTip, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version">[] = [
+export const healthTips: Omit<
+   HealthTip,
+   "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"
+>[] = [
    // Smoking
    {
       title: "Immediate Benefits of Quitting Smoking",
@@ -202,14 +211,24 @@ export const healthTips: Omit<HealthTip, "id" | "isActive" | "createdAt" | "upda
    },
 ];
 
-export const getRandomQuote = (category?: HabitCategory): Omit<Quote, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"> => {
+export const getRandomQuote = (
+   category?: HabitCategory
+): Omit<
+   Quote,
+   "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"
+> => {
    const quotes = category
       ? motivationalQuotes.filter((q) => q.category === category)
       : motivationalQuotes;
    return quotes[Math.floor(Math.random() * quotes.length)];
 };
 
-export const getHealthTip = (category: HabitCategory): Omit<HealthTip, "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"> => {
+export const getHealthTip = (
+   category: HabitCategory
+): Omit<
+   HealthTip,
+   "id" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "version"
+> => {
    const tips = healthTips.filter((tip) => tip.category === category);
    return tips[Math.floor(Math.random() * tips.length)];
 };

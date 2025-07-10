@@ -28,11 +28,20 @@ export const useHabitTracker = () => {
       saveToStorage("entries", entries);
    }, [entries]);
 
-   const addHabit = (habitData: Omit<Habit, "id" | "createdAt">) => {
+   const addHabit = (
+      habitData: Omit<
+         Habit,
+         "id" | "userId" | "createdAt" | "updatedAt" | "startDate" | "isActive"
+      >
+   ) => {
       const newHabit: Habit = {
          ...habitData,
          id: `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+         userId: "local-user", // For local storage, we'll use a default user ID
          createdAt: new Date(),
+         updatedAt: new Date(),
+         startDate: new Date(),
+         isActive: true,
       };
 
       setHabits((prev) => [...prev, newHabit]);
@@ -61,7 +70,9 @@ export const useHabitTracker = () => {
       } else {
          // Create new entry
          const newEntry: HabitEntry = {
+            id: `entry_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             habitId,
+            userId: "local-user", // For local storage, we'll use a default user ID
             date: dateString,
             completed,
             timestamp: new Date(),
