@@ -148,8 +148,8 @@ export default function Home() {
 
                 {/* Connection status */}
                 <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isOnline
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-orange-100 text-orange-700'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-orange-100 text-orange-700'
                   }`}>
                   {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                   {isOnline ? 'Online' : 'Offline'}
