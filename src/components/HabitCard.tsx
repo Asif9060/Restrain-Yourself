@@ -12,6 +12,7 @@ interface HabitCardProps {
   entries: HabitEntry[];
   onToggle: (habitId: string, completed: boolean) => void;
   onViewStats: (habit: Habit) => void;
+  onRemove: (habitId: string) => void;
 }
 
 export const HabitCard: React.FC<HabitCardProps> = ({
@@ -20,6 +21,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   entries,
   onToggle,
   onViewStats,
+  onRemove,
 }) => {
   const dateString = formatDate(selectedDate);
   const entry = entries.find(e => e.habitId === habit.id && e.date === dateString);
@@ -55,14 +57,26 @@ export const HabitCard: React.FC<HabitCardProps> = ({
           </div>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onViewStats(habit)}
-          className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          View Stats
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onViewStats(habit)}
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            View Stats
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => onRemove(habit.id)}
+            className="p-2 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 transition-colors font-bold"
+            title="Remove habit"
+          >
+            ×
+          </motion.button>
+        </div>
       </div>
 
       <motion.button

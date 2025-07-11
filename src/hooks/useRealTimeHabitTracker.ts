@@ -16,10 +16,19 @@ interface ToggleData {
 
 interface OptimisticUpdate {
    id: string;
-   type: "toggle" | "add" | "remove";
-   timestamp: number;
-   data: ToggleData;
-   retryCount: number;
+   type: "toggle" | "add" | "remove" | "add_habit" | "remove_habit";
+   timestamp: Date;
+   data: ToggleData | AddHabitData | RemoveHabitData;
+   retryCount?: number;
+}
+
+interface AddHabitData {
+   habitData: Omit<Habit, "id" | "userId" | "createdAt" | "updatedAt">;
+   tempId: string;
+}
+
+interface RemoveHabitData {
+   habitId: string;
 }
 
 interface LoadingState {
@@ -171,7 +180,8 @@ export const useRealTimeHabitTracker = () => {
 
          try {
             if (type === "toggle") {
-               const { habitId, completed, date, notes } = data;
+               const toggleData = data as ToggleData;
+               const { habitId, completed, date, notes } = toggleData;
                const existingEntry = entries.find(
                   (entry) => entry.habitId === habitId && entry.date === date
                );
@@ -202,6 +212,30 @@ export const useRealTimeHabitTracker = () => {
 
                   if (error) throw error;
                }
+            } else if (type === "add_habit") {
+               const addData = data as AddHabitData;
+               const { error } = await supabase.from("habits").insert({
+                  user_id: user!.id,
+                  name: addData.habitData.name,
+                  category: addData.habitData.category,
+                  color: addData.habitData.color,
+                  icon: addData.habitData.icon,
+                  is_custom: addData.habitData.isCustom,
+                  description: addData.habitData.description || null,
+                  start_date: addData.habitData.startDate.toISOString(),
+                  is_active: addData.habitData.isActive,
+               });
+
+               if (error) throw error;
+            } else if (type === "remove_habit") {
+               const removeData = data as RemoveHabitData;
+               const { error } = await supabase
+                  .from("habits")
+                  .update({ is_active: false })
+                  .eq("id", removeData.habitId)
+                  .eq("user_id", user!.id);
+
+               if (error) throw error;
             }
          } catch (error) {
             console.error("Execute update failed:", error);
@@ -329,7 +363,8 @@ export const useRealTimeHabitTracker = () => {
          setOptimisticUpdates((prev) => [...prev, update]);
 
          if (update.type === "toggle") {
-            const { habitId, completed, date } = update.data;
+            const toggleData = update.data as ToggleData;
+            const { habitId, completed, date } = toggleData;
 
             setEntries((prev) => {
                const existingIndex = prev.findIndex(
@@ -375,7 +410,21 @@ export const useRealTimeHabitTracker = () => {
    // Debounced update function
    const debouncedUpdate = useCallback(
       (update: OptimisticUpdate) => {
-         const key = `${update.type}-${update.data.habitId}-${update.data.date}`;
+         let key: string;
+
+         // Generate key based on update type
+         if (update.type === "toggle") {
+            const toggleData = update.data as ToggleData;
+            key = `${update.type}-${toggleData.habitId}-${toggleData.date}`;
+         } else if (update.type === "add_habit") {
+            const addData = update.data as AddHabitData;
+            key = `${update.type}-${addData.tempId}`;
+         } else if (update.type === "remove_habit") {
+            const removeData = update.data as RemoveHabitData;
+            key = `${update.type}-${removeData.habitId}`;
+         } else {
+            key = `${update.type}-${update.id}`;
+         }
 
          // Clear existing timeout
          if (pendingUpdatesRef.current.has(key)) {
@@ -417,12 +466,36 @@ export const useRealTimeHabitTracker = () => {
                } else {
                   // Max retries reached, revert optimistic update
                   revertOptimisticUpdate(update.id);
-                  setError(`toggle-${update.data.habitId}`, "Failed to save changes");
+
+                  // Set error based on update type
+                  if (update.type === "toggle") {
+                     const toggleData = update.data as ToggleData;
+                     setError(`toggle-${toggleData.habitId}`, "Failed to save changes");
+                  } else if (update.type === "add_habit") {
+                     setError("addHabit", "Failed to add habit");
+                  } else if (update.type === "remove_habit") {
+                     const removeData = update.data as RemoveHabitData;
+                     setError(
+                        `removeHabit-${removeData.habitId}`,
+                        "Failed to remove habit"
+                     );
+                  }
+
                   retriesRef.current.delete(key);
                }
             } finally {
                pendingUpdatesRef.current.delete(key);
-               setLoading(`toggle-${update.data.habitId}`, false);
+
+               // Set loading state based on update type
+               if (update.type === "toggle") {
+                  const toggleData = update.data as ToggleData;
+                  setLoading(`toggle-${toggleData.habitId}`, false);
+               } else if (update.type === "add_habit") {
+                  setLoading("addHabit", false);
+               } else if (update.type === "remove_habit") {
+                  const removeData = update.data as RemoveHabitData;
+                  setLoading(`removeHabit-${removeData.habitId}`, false);
+               }
             }
          }, DEBOUNCE_DELAY);
 
@@ -456,7 +529,7 @@ export const useRealTimeHabitTracker = () => {
          const update: OptimisticUpdate = {
             id: updateId,
             type: "toggle",
-            timestamp: Date.now(),
+            timestamp: new Date(),
             data: { habitId, completed, date: dateString, notes },
             retryCount: 0,
          };
@@ -675,33 +748,83 @@ export const useRealTimeHabitTracker = () => {
          setLoading("addHabit", true);
          clearError("addHabit");
 
+         // Generate temporary ID for optimistic update
+         const tempId = `temp-habit-${Date.now()}`;
+         const now = new Date();
+
+         // Create optimistic habit
+         const optimisticHabit: Habit = {
+            id: tempId,
+            userId: user.id,
+            name: habitData.name,
+            category: habitData.category,
+            color: habitData.color,
+            icon: habitData.icon,
+            isCustom: habitData.isCustom,
+            description: habitData.description ? habitData.description : undefined,
+            startDate: habitData.startDate,
+            isActive: habitData.isActive,
+            createdAt: now,
+            updatedAt: now,
+         };
+
+         // Apply optimistic update immediately
+         setHabits((prev) => [optimisticHabit, ...prev]);
+
          try {
-            const { error } = await supabase.from("habits").insert({
-               user_id: user.id,
-               name: habitData.name,
-               category: habitData.category,
-               color: habitData.color,
-               icon: habitData.icon,
-               is_custom: habitData.isCustom,
-               description: habitData.description || null,
-               start_date: habitData.startDate.toISOString(),
-               is_active: habitData.isActive,
-            });
+            if (!isOnline) {
+               // Add to offline queue
+               const update: OptimisticUpdate = {
+                  id: `add-habit-${tempId}`,
+                  type: "add_habit",
+                  data: { habitData, tempId },
+                  timestamp: now,
+               };
+               setOfflineQueue((prev) => [...prev, update]);
+               setLoading("addHabit", false);
+               return;
+            }
+
+            const { data, error } = await supabase
+               .from("habits")
+               .insert({
+                  user_id: user.id,
+                  name: habitData.name,
+                  category: habitData.category,
+                  color: habitData.color,
+                  icon: habitData.icon,
+                  is_custom: habitData.isCustom,
+                  description: habitData.description || null,
+                  start_date: habitData.startDate.toISOString(),
+                  is_active: habitData.isActive,
+               })
+               .select()
+               .single();
 
             if (error) throw error;
+
+            // Replace optimistic habit with real data
+            setHabits((prev) =>
+               prev.map((habit) =>
+                  habit.id === tempId ? transformHabitData(data) : habit
+               )
+            );
 
             // Clear cache to force refresh
             const cacheKey = `habits-${user.id}`;
             cacheRef.current.delete(cacheKey);
          } catch (error) {
             console.error("Error adding habit:", error);
+
+            // Revert optimistic update on error
+            setHabits((prev) => prev.filter((habit) => habit.id !== tempId));
             setError("addHabit", "Failed to add habit");
             throw error;
          } finally {
             setLoading("addHabit", false);
          }
       },
-      [user, setLoading, clearError, setError]
+      [user, setLoading, clearError, setError, isOnline, transformHabitData]
    );
 
    const removeHabit = useCallback(
@@ -714,7 +837,31 @@ export const useRealTimeHabitTracker = () => {
          setLoading(`removeHabit-${habitId}`, true);
          clearError(`removeHabit-${habitId}`);
 
+         // Store original habit for potential revert
+         const originalHabit = habits.find((h) => h.id === habitId);
+         if (!originalHabit) {
+            setError(`removeHabit-${habitId}`, "Habit not found");
+            setLoading(`removeHabit-${habitId}`, false);
+            return;
+         }
+
+         // Apply optimistic update immediately - remove from UI
+         setHabits((prev) => prev.filter((habit) => habit.id !== habitId));
+
          try {
+            if (!isOnline) {
+               // Add to offline queue
+               const update: OptimisticUpdate = {
+                  id: `remove-habit-${habitId}`,
+                  type: "remove_habit",
+                  data: { habitId },
+                  timestamp: new Date(),
+               };
+               setOfflineQueue((prev) => [...prev, update]);
+               setLoading(`removeHabit-${habitId}`, false);
+               return;
+            }
+
             const { error } = await supabase
                .from("habits")
                .update({ is_active: false })
@@ -728,13 +875,21 @@ export const useRealTimeHabitTracker = () => {
             cacheRef.current.delete(cacheKey);
          } catch (error) {
             console.error("Error removing habit:", error);
+
+            // Revert optimistic update on error - restore the habit
+            setHabits((prev) =>
+               [originalHabit, ...prev].sort(
+                  (a, b) =>
+                     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+               )
+            );
             setError(`removeHabit-${habitId}`, "Failed to remove habit");
             throw error;
          } finally {
             setLoading(`removeHabit-${habitId}`, false);
          }
       },
-      [user, setLoading, clearError, setError]
+      [user, habits, setLoading, clearError, setError, isOnline]
    );
 
    const refreshData = useCallback(async () => {

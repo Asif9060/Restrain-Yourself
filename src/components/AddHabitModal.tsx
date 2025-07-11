@@ -10,8 +10,10 @@ import { Habit, HabitCategory } from '@/types';
 interface AddHabitModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAddHabit: (habit: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => void;
+    onAddHabit: (habit: Omit<Habit, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
     existingHabits: Habit[];
+    isLoading?: boolean;
+    error?: string;
 }
 
 const categoryColors: Record<HabitCategory, string> = {
@@ -32,7 +34,9 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
     isOpen,
     onClose,
     onAddHabit,
-    existingHabits
+    existingHabits,
+    isLoading = false,
+    error
 }) => {
     const [activeTab, setActiveTab] = useState<'predefined' | 'custom'>('predefined');
     const [customHabit, setCustomHabit] = useState({
@@ -42,6 +46,7 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
         icon: 'Target',
         color: categoryColors.custom
     });
+    const [localError, setLocalError] = useState<string>('');
 
     // Filter out already added predefined habits
     const availablePredefinedHabits = predefinedHabits.filter(habit =>

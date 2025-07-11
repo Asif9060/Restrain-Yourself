@@ -12,6 +12,7 @@ interface RealTimeHabitCardProps {
     entries: HabitEntry[];
     onToggle: (habitId: string, completed: boolean) => void;
     onViewStats: (habit: Habit) => void;
+    onRemove: (habitId: string) => void;
 
     // Real-time state
     isLoading?: boolean;
@@ -29,6 +30,7 @@ export const RealTimeHabitCard: React.FC<RealTimeHabitCardProps> = ({
     entries,
     onToggle,
     onViewStats,
+    onRemove,
     isLoading = false,
     hasError = false,
     errorMessage,
@@ -139,14 +141,30 @@ export const RealTimeHabitCard: React.FC<RealTimeHabitCardProps> = ({
                     </div>
                 </div>
 
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => onViewStats(habit)}
-                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                    View Stats
-                </motion.button>
+                <div className="flex items-center gap-2">
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => onViewStats(habit)}
+                        className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                        View Stats
+                    </motion.button>
+
+                    <motion.button
+                        whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                        whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                        onClick={() => !isLoading && onRemove(habit.id)}
+                        disabled={isLoading}
+                        className={`p-2 rounded-lg transition-colors font-bold ${isLoading
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-red-500 hover:text-red-700 hover:bg-red-50'
+                            }`}
+                        title={isLoading ? "Processing..." : "Remove habit"}
+                    >
+                        {isLoading ? '⏳' : '×'}
+                    </motion.button>
+                </div>
             </div>
 
             {/* Error message */}

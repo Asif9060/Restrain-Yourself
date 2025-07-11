@@ -38,6 +38,7 @@ export default function Home() {
     setSelectedDate,
     setCurrentMonth,
     addHabit,
+    removeHabit,
     toggleHabitEntry,
     getTodayStats,
     clearError,
@@ -178,10 +179,15 @@ export default function Home() {
                         entries={entries}
                         onToggle={toggleHabitEntry}
                         onViewStats={handleViewStats}
-                        isLoading={loadingStates[`toggle-${habit.id}`] || false}
-                        hasError={!!errors[`toggle-${habit.id}`]}
-                        errorMessage={errors[`toggle-${habit.id}`]}
-                        isOptimistic={optimisticUpdates.some(u => u.data.habitId === habit.id)}
+                        onRemove={removeHabit}
+                        isLoading={loadingStates[`toggle-${habit.id}`] || loadingStates[`removeHabit-${habit.id}`] || false}
+                        hasError={!!errors[`toggle-${habit.id}`] || !!errors[`removeHabit-${habit.id}`]}
+                        errorMessage={errors[`toggle-${habit.id}`] || errors[`removeHabit-${habit.id}`]}
+                        isOptimistic={optimisticUpdates.some(u =>
+                          (u.type === "toggle" && (u.data as { habitId: string }).habitId === habit.id) ||
+                          (u.type === "add_habit" && (u.data as { tempId: string }).tempId === habit.id) ||
+                          (u.type === "remove_habit" && (u.data as { habitId: string }).habitId === habit.id)
+                        )}
                         isOnline={isOnline}
                         onRetry={handleRetryToggle}
                         onClearError={clearError}
@@ -208,6 +214,8 @@ export default function Home() {
         onClose={() => setShowAddHabit(false)}
         onAddHabit={addHabit}
         existingHabits={habits}
+        isLoading={loadingStates.addHabit || false}
+        error={errors.addHabit}
       />
 
       <StatsModal
