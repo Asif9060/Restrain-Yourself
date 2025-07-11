@@ -8,6 +8,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     createUser: (username: string) => Promise<void>;
+    loginUser: (username: string) => Promise<void>;
     signOut: () => Promise<void>;
     refreshSession: () => Promise<void>;
 }
@@ -140,6 +141,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const loginUser = async (username: string) => {
+        setLoading(true);
+
+        try {
+            // Check if user exists in database
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('username', username.trim().toLowerCase())
+                .single();
+
+            if (error || !data) {
+                throw new Error('Username not found. Please check your username or create a new account.');
+            }
+
+            // Create user profile object
+            const userProfile: User = {
+                id: data.id,
+                username: data.username,
+                createdAt: new Date(data.created_at),
+                updatedAt: new Date(data.updated_at),
+                settings: data.settings as Record<string, unknown> || {},
+                isAdmin: data.is_admin,
+            };
+
+            // Create persistent session
+            createSession(userProfile);
+        } catch (error) {
+            console.error('Error logging in user:', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const signOut = async () => {
         clearSession();
     };
@@ -179,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         loading,
         createUser,
+        loginUser,
         signOut,
         refreshSession,
     };

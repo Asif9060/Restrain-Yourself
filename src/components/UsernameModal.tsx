@@ -13,7 +13,8 @@ export function UsernameModal({ isOpen }: UsernameModalProps) {
     const [username, setUsername] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const { createUser } = useAuth();
+    const [isLoginMode, setIsLoginMode] = useState(false);
+    const { createUser, loginUser } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,25 +30,32 @@ export function UsernameModal({ isOpen }: UsernameModalProps) {
             return;
         }
 
-        if (username.trim().length > 20) {
-            setError('Username must be less than 20 characters long');
-            return;
-        }
+        if (!isLoginMode) {
+            // Additional validation for create mode
+            if (username.trim().length > 20) {
+                setError('Username must be less than 20 characters long');
+                return;
+            }
 
-        if (!/^[a-zA-Z0-9_-]+$/.test(username.trim())) {
-            setError('Username can only contain letters, numbers, hyphens, and underscores');
-            return;
+            if (!/^[a-zA-Z0-9_-]+$/.test(username.trim())) {
+                setError('Username can only contain letters, numbers, hyphens, and underscores');
+                return;
+            }
         }
 
         setIsLoading(true);
         setError('');
 
         try {
-            await createUser(username.trim());
-            // User creation and session creation is handled by createUser
+            if (isLoginMode) {
+                await loginUser(username.trim());
+            } else {
+                await createUser(username.trim());
+            }
+            // User creation/login and session creation is handled by the respective methods
         } catch (error) {
-            console.error('Error creating user:', error);
-            setError(error instanceof Error ? error.message : 'Failed to create user');
+            console.error(`Error ${isLoginMode ? 'logging in' : 'creating'} user:`, error);
+            setError(error instanceof Error ? error.message : `Failed to ${isLoginMode ? 'login' : 'create user'}`);
         } finally {
             setIsLoading(false);
         }
@@ -78,10 +86,13 @@ export function UsernameModal({ isOpen }: UsernameModalProps) {
                                 <User className="w-8 h-8 text-white" />
                             </div>
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                Welcome to Restrain Yourself
+                                {isLoginMode ? 'Welcome Back' : 'Welcome to Restrain Yourself'}
                             </h2>
                             <p className="text-gray-600">
-                                Choose a username to get started on your journey
+                                {isLoginMode
+                                    ? 'Enter your username to continue your journey'
+                                    : 'Choose a username to get started on your journey'
+                                }
                             </p>
                         </div>
 
@@ -107,10 +118,12 @@ export function UsernameModal({ isOpen }: UsernameModalProps) {
                                 )}
                             </div>
 
-                            <div className="text-xs text-gray-500 space-y-1">
-                                <p>• Must be 3-20 characters long</p>
-                                <p>• Can only contain letters, numbers, hyphens, and underscores</p>
-                            </div>
+                            {!isLoginMode && (
+                                <div className="text-xs text-gray-500 space-y-1">
+                                    <p>• Must be 3-20 characters long</p>
+                                    <p>• Can only contain letters, numbers, hyphens, and underscores</p>
+                                </div>
+                            )}
 
                             <button
                                 type="submit"
@@ -120,12 +133,30 @@ export function UsernameModal({ isOpen }: UsernameModalProps) {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        Creating Profile...
+                                        {isLoginMode ? 'Logging in...' : 'Creating Profile...'}
                                     </>
                                 ) : (
-                                    'Create Profile'
+                                    isLoginMode ? 'Login' : 'Create Profile'
                                 )}
                             </button>
+
+                            <div className="text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsLoginMode(!isLoginMode);
+                                        setError('');
+                                        setUsername('');
+                                    }}
+                                    className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                                    disabled={isLoading}
+                                >
+                                    {isLoginMode
+                                        ? "Don't have an account? Create one"
+                                        : "Already have an account? Login"
+                                    }
+                                </button>
+                            </div>
                         </form>
                     </motion.div>
                 </motion.div>
