@@ -100,8 +100,8 @@ export const Calendar: React.FC<CalendarProps> = ({
             classes += ' text-gray-700 hover:bg-gray-100';
         }
 
-        // Add status indicators only for selectable dates in current month
-        if (isCurrentMonth && !isSelected && isSelectable) {
+        // Add status indicators only for current month dates (regardless of selectability)
+        if (isCurrentMonth && !isSelected && !isFuture) {
             switch (status) {
                 case 'success':
                     classes += ' bg-green-100 text-green-700 border-2 border-green-300';
