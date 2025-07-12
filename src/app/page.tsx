@@ -95,7 +95,7 @@ export default function Home() {
     <div className="prevent-layout-shift bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Network Status Indicator */}
       {!isOnline && (
-        <div className="fixed top-0 left-0 right-0 bg-orange-500 text-white px-4 py-2 text-sm text-center z-50">
+        <div className="fixed top-0 left-0 right-0 bg-orange-500 text-white px-4 py-2 text-sm text-center z-50 mobile-network-status">
           <div className="flex items-center justify-center gap-2">
             <WifiOff className="w-4 h-4" />
             You&apos;re offline. Changes will sync when connection is restored.
@@ -114,7 +114,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${!isOnline ? 'pt-16' : ''}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-5rem)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-5rem)] mobile-grid">
           {/* Left Column - Calendar */}
           <div className="lg:col-span-1 flex flex-col">
             <Calendar
@@ -133,9 +133,9 @@ export default function Home() {
           </div>
 
           {/* Middle Column - Habits (Larger) */}
-          <div className="lg:col-span-1 flex flex-col">
+          <div className="lg:col-span-1 flex flex-col mobile-habits-container">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className="text-xl font-bold text-gray-800 mobile-section-title">
                 {isSelectedDateToday ? `Today's Habits` : `Habits for ${format(selectedDate, 'MMM do')}`}
               </h2>
 
@@ -143,7 +143,8 @@ export default function Home() {
                 {habits.length > 0 && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <BarChart3 className="w-4 h-4" />
-                    <span>{habits.length} habit{habits.length !== 1 ? 's' : ''}</span>
+                    <span className="hidden sm:inline">{habits.length} habit{habits.length !== 1 ? 's' : ''}</span>
+                    <span className="sm:hidden">{habits.length}</span>
                   </div>
                 )}
 
@@ -159,13 +160,13 @@ export default function Home() {
             </div>
 
             {/* Habits Container - Full Height */}
-            <div className="flex-1 overflow-y-auto habits-scroll">
+            <div className="flex-1 overflow-y-auto habits-scroll mobile-scroll-area">
               {habits.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <EmptyState onAddHabit={() => setShowAddHabit(true)} />
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 mobile-compact-spacing">
                   {habits.map((habit: Habit, index: number) => (
                     <motion.div
                       key={habit.id}
@@ -201,7 +202,7 @@ export default function Home() {
 
           {/* Right Column - Motivational Content */}
           <div className="lg:col-span-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto habits-scroll">
+            <div className="flex-1 overflow-y-auto habits-scroll mobile-scroll-area">
               <MotivationalContent habits={habits} />
             </div>
           </div>
@@ -226,12 +227,12 @@ export default function Home() {
 
       {/* Error Display for general errors */}
       {Object.keys(errors).filter(key => !key.startsWith('toggle-')).map(key => (
-        <div key={key} className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+        <div key={key} className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 mobile-error-toast">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm">{errors[key]}</p>
             <button
               onClick={() => clearError(key)}
-              className="text-white hover:text-gray-200"
+              className="text-white hover:text-gray-200 mobile-touch-target"
             >
               ×
             </button>

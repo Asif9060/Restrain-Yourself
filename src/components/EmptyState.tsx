@@ -13,7 +13,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onAddHabit }) => {
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl shadow-lg p-12 text-center"
+            className="bg-white rounded-xl shadow-lg p-12 text-center mobile-empty-state"
         >
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Plus className="w-12 h-12 text-gray-400" />
@@ -24,10 +24,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onAddHabit }) => {
             </p>
             <button
                 onClick={onAddHabit}
-                className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center gap-2"
+                className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center gap-2 mobile-touch-target mobile-tap-highlight"
             >
                 <Plus className="w-5 h-5" />
-                Add Your First Habit
+                <span className="hidden sm:inline">Add Your First Habit</span>
+                <span className="sm:hidden">Add Habit</span>
             </button>
         </motion.div>
     );

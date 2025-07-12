@@ -21,18 +21,19 @@ export const DateInfo: React.FC<DateInfoProps> = ({ selectedDate, todayStats }) 
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg p-5"
+            className="bg-white rounded-xl shadow-lg p-5 mobile-date-info"
         >
             <div className="flex items-center gap-3 mb-4">
                 <Calendar className="w-6 h-6 text-blue-500" />
                 <h3 className="text-base font-semibold text-gray-800">
-                    {format(selectedDate, 'EEEE, MMM do')}
+                    <span className="hidden sm:inline">{format(selectedDate, 'EEEE, MMM do')}</span>
+                    <span className="sm:hidden">{format(selectedDate, 'MMM do')}</span>
                 </h3>
             </div>
 
             {isSelectedDateToday ? (
-                <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-blue-700 font-medium">Today&apos;s Progress</p>
+                <div className="bg-blue-50 rounded-lg p-4 mobile-stats">
+                    <p className="text-blue-700 font-medium mobile-stats-title">Today&apos;s Progress</p>
                     <div className="flex items-center gap-3 mt-3">
                         <div className="flex-1 bg-blue-200 rounded-full h-3">
                             <div
@@ -40,7 +41,7 @@ export const DateInfo: React.FC<DateInfoProps> = ({ selectedDate, todayStats }) 
                                 style={{ width: `${todayStats.percentage}%` }}
                             ></div>
                         </div>
-                        <span className="text-sm font-medium text-blue-700">
+                        <span className="text-sm font-medium text-blue-700 mobile-stats-value">
                             {todayStats.completed}/{todayStats.total}
                         </span>
                     </div>
@@ -52,7 +53,7 @@ export const DateInfo: React.FC<DateInfoProps> = ({ selectedDate, todayStats }) 
                     </p>
                 </div>
             ) : (
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 rounded-lg p-4 mobile-stats">
                     <p className="text-gray-600 text-sm">
                         {selectedDate > new Date() ?
                             'Future date - plan your habits!' :

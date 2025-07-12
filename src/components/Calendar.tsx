@@ -119,14 +119,14 @@ export const Calendar: React.FC<CalendarProps> = ({
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 mobile-calendar">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-6">
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={goToPreviousMonth}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors mobile-touch-target"
                 >
                     <ChevronLeft className="w-5 h-5 text-gray-600" />
                 </motion.button>
@@ -139,7 +139,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={goToNextMonth}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors mobile-touch-target"
                 >
                     <ChevronRight className="w-5 h-5 text-gray-600" />
                 </motion.button>
@@ -150,7 +150,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                 {weekDays.map((day) => (
                     <div
                         key={day}
-                        className="h-10 flex items-center justify-center text-sm font-medium text-gray-500"
+                        className="h-10 flex items-center justify-center text-sm font-medium text-gray-500 mobile-calendar-weekday"
                     >
                         {day}
                     </div>
@@ -167,7 +167,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                             whileHover={isSelectable ? { scale: 1.05 } : {}}
                             whileTap={isSelectable ? { scale: 0.95 } : {}}
                             onClick={() => handleDateClick(day)}
-                            className={getDayClasses(day)}
+                            className={`${getDayClasses(day)} mobile-calendar-day mobile-touch-target mobile-tap-highlight`}
                             title={
                                 !isSelectable
                                     ? getDateValidationMessage(day) || "This date cannot be selected"
@@ -187,7 +187,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2"
+                        className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 mobile-slide-up"
                     >
                         <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-red-700">{errorMessage}</span>
@@ -197,28 +197,28 @@ export const Calendar: React.FC<CalendarProps> = ({
 
             {/* Legend */}
             <div className="mt-6 space-y-3">
-                <div className="flex flex-wrap gap-4 text-xs">
-                    <div className="flex items-center gap-2">
+                <div className="mobile-calendar-legend">
+                    <div className="mobile-calendar-legend-item">
                         <div className="w-3 h-3 bg-green-100 border-2 border-green-300 rounded"></div>
-                        <span className="text-gray-600">All habits completed</span>
+                        <span className="text-gray-600">All completed</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="mobile-calendar-legend-item">
                         <div className="w-3 h-3 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
-                        <span className="text-gray-600">Partially completed</span>
+                        <span className="text-gray-600">Partial</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="mobile-calendar-legend-item">
                         <div className="w-3 h-3 bg-red-100 border-2 border-red-300 rounded"></div>
-                        <span className="text-gray-600">No habits completed</span>
+                        <span className="text-gray-600">None completed</span>
                     </div>
-                </div>
-                <div className="flex flex-wrap gap-4 text-xs">
-                    <div className="flex items-center gap-2">
+                    <div className="mobile-calendar-legend-item">
                         <div className="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
                         <span className="text-gray-600">Today</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                </div>
+                <div className="mobile-calendar-legend">
+                    <div className="mobile-calendar-legend-item col-span-2">
                         <div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded opacity-50"></div>
-                        <span className="text-gray-500">Cannot select (future/too old)</span>
+                        <span className="text-gray-500">Cannot select</span>
                     </div>
                 </div>
             </div>
