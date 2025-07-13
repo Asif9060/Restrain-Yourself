@@ -40,14 +40,19 @@ export const auth = getAuth(app);
 const registerServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
    if ("serviceWorker" in navigator) {
       try {
+         console.log("Unregistering existing service workers...");
          // Unregister any existing service workers first
          const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+         console.log("Found existing registrations:", existingRegistrations.length);
+         
          for (const registration of existingRegistrations) {
             if (registration.scope.includes("firebase-cloud-messaging-push-scope")) {
+               console.log("Unregistering existing FCM service worker");
                await registration.unregister();
             }
          }
 
+         console.log("Registering new service worker at /firebase-messaging-sw.js");
          const registration = await navigator.serviceWorker.register(
             "/firebase-messaging-sw.js",
             {
@@ -55,13 +60,23 @@ const registerServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
             }
          );
 
+         console.log("Service worker registration object:", registration);
+         
          // Wait for the service worker to be ready
-         await navigator.serviceWorker.ready;
+         console.log("Waiting for service worker to be ready...");
+         const readyRegistration = await navigator.serviceWorker.ready;
+         console.log("Service worker is ready:", readyRegistration);
 
          console.log("Service Worker registered successfully:", registration);
          return registration;
-      } catch (error) {
+      } catch (err) {
+         const error = err as Error;
          console.error("Service Worker registration failed:", error);
+         console.error("Error details:", {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+         });
          throw error;
       }
    } else {
@@ -72,8 +87,16 @@ const registerServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
 // Get FCM token
 export const getFCMToken = async (): Promise<string | null> => {
    try {
+      // Debug environment variables
+      console.log("Firebase Config Debug:");
+      console.log("API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "✅ Set" : "❌ Missing");
+      console.log("Project ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? "✅ Set" : "❌ Missing");
+      console.log("VAPID Key:", process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ? "✅ Set" : "❌ Missing");
+      
       if (!messaging) {
          console.warn("Firebase messaging is not supported in this environment");
+         console.log("Current location:", typeof window !== "undefined" ? window.location.href : "Server-side");
+         console.log("User agent:", typeof window !== "undefined" ? navigator.userAgent : "Server-side");
 
          // Return mock token for development
          if (typeof window !== "undefined" && window.location.hostname === "localhost") {
@@ -86,6 +109,9 @@ export const getFCMToken = async (): Promise<string | null> => {
       const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
       if (!vapidKey) {
          console.error("VAPID key is not configured");
+         console.error("Environment check:");
+         console.error("- NODE_ENV:", process.env.NODE_ENV);
+         console.error("- All env vars:", Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_FIREBASE')));
 
          // Return mock token for development
          if (typeof window !== "undefined" && window.location.hostname === "localhost") {
@@ -96,7 +122,12 @@ export const getFCMToken = async (): Promise<string | null> => {
       }
 
       // Register service worker first
+      console.log("Attempting to register service worker...");
+      console.log("Location origin:", window.location.origin);
+      console.log("Service worker availability:", 'serviceWorker' in navigator);
+      
       const registration = await registerServiceWorker();
+      console.log("Service worker registered successfully");
 
       // Wait a bit for service worker to be fully ready
       await new Promise((resolve) => setTimeout(resolve, 500));

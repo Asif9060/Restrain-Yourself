@@ -129,9 +129,24 @@ export function useNotifications(): NotificationHookReturn {
 
    const registerDevice = useCallback(
       async (userId: string): Promise<boolean> => {
+         console.log("registerDevice called with userId:", userId);
+         console.log("Current token:", token);
+         
          if (!token) {
             console.warn("No FCM token available for device registration");
-            return false;
+            console.warn("Debug info:");
+            console.warn("- Permission:", permission);
+            console.warn("- isSupported:", isSupported);
+            console.warn("- Window location:", typeof window !== "undefined" ? window.location.href : "Server-side");
+            
+            // Try to refresh the token
+            console.log("Attempting to refresh token...");
+            await refreshToken();
+            
+            if (!token) {
+               console.error("Still no token after refresh attempt");
+               return false;
+            }
          }
 
          // Handle mock token for localhost development
@@ -164,7 +179,7 @@ export function useNotifications(): NotificationHookReturn {
             return false;
          }
       },
-      [token]
+      [token, permission, isSupported, refreshToken]
    );
 
    const unregisterDevice = useCallback(async (): Promise<boolean> => {

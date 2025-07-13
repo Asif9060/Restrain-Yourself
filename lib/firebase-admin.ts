@@ -243,6 +243,11 @@ export const sendNotificationToMultipleDevices = async (
 export const validateFCMToken = async (token: string): Promise<boolean> => {
    try {
       const messaging = getAdminMessaging();
+      
+      if (!messaging) {
+         console.warn('Firebase Admin messaging not available');
+         return false;
+      }
 
       // Try to send a dry-run message to validate the token
       await messaging.send(
