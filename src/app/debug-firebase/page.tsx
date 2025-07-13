@@ -28,6 +28,16 @@ export default function DebugFirebasePage() {
 
     const testEnvironmentVariables = () => {
         addLog("=== Testing Environment Variables ===");
+        addLog(`Environment: ${process.env.NODE_ENV}`);
+        addLog(`typeof window: ${typeof window}`);
+        
+        // Check if we're in browser context
+        if (typeof window !== 'undefined') {
+            addLog("Running in browser context");
+        } else {
+            addLog("Running in server context");
+        }
+        
         const vars = [
             'NEXT_PUBLIC_FIREBASE_API_KEY',
             'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
@@ -38,13 +48,23 @@ export default function DebugFirebasePage() {
             'NEXT_PUBLIC_FIREBASE_VAPID_KEY'
         ];
         
+        addLog(`Total env vars to check: ${vars.length}`);
+        addLog(`process.env keys starting with NEXT_PUBLIC: ${Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC')).length}`);
+        
         vars.forEach(varName => {
             const value = process.env[varName];
             if (value) {
                 addLog(`✅ ${varName}: ${value.substring(0, 20)}...`);
             } else {
-                addLog(`❌ ${varName}: Not set`);
+                addLog(`❌ ${varName}: Not set (value is: ${typeof value})`);
             }
+        });
+        
+        // Additional debug info
+        addLog("=== All NEXT_PUBLIC vars ===");
+        Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC')).forEach(key => {
+            const value = process.env[key];
+            addLog(`${key}: ${value ? value.substring(0, 20) + '...' : 'undefined'}`);
         });
     };
 
@@ -89,6 +109,7 @@ export default function DebugFirebasePage() {
         try {
             if (permission !== 'granted') {
                 addLog("❌ Cannot get token without permission");
+                setLoading(false);
                 return;
             }
             
@@ -101,6 +122,8 @@ export default function DebugFirebasePage() {
                 
                 if (fcmToken.startsWith('mock-token-')) {
                     addLog("ℹ️ This is a mock token for development");
+                } else {
+                    addLog("ℹ️ This is a real FCM token");
                 }
             } else {
                 addLog("❌ Failed to get FCM token");
@@ -113,11 +136,90 @@ export default function DebugFirebasePage() {
         }
     };
 
+    const testFirebaseDirectly = async () => {
+        addLog("=== Testing Firebase with Hardcoded Config ===");
+        setLoading(true);
+        
+        try {
+            // Hardcoded Firebase config for testing
+            const testConfig = {
+                apiKey: "AIzaSyBctypVYrvSZl7gXeDutTuEbNYfgyE7Uuo",
+                authDomain: "restrain-yourself.firebaseapp.com",
+                projectId: "restrain-yourself",
+                storageBucket: "restrain-yourself.firebasestorage.app",
+                messagingSenderId: "442834474290",
+                appId: "1:442834474290:web:1ab7118cfb1a7e76f4732b",
+                measurementId: "G-8820N4Y8H8"
+            };
+            
+            const vapidKey = "BKwk9EvA0I96-bYUDVMYtT-oLo8Wr-oOMMoHFSJu0NMykcNi7HTxYOXUa7mbDpmRLIl8vWBFAMV-o4oHK3Dw3_0";
+            
+            addLog("✅ Hardcoded config loaded");
+            addLog(`Config keys: ${Object.keys(testConfig).join(', ')}`);
+            addLog(`VAPID key: ${vapidKey.substring(0, 20)}...`);
+            
+            // Try to import Firebase directly
+            const { initializeApp } = await import('firebase/app');
+            const { getMessaging, getToken, isSupported } = await import('firebase/messaging');
+            
+            addLog("✅ Firebase modules imported");
+            
+            const app = initializeApp(testConfig);
+            addLog("✅ Firebase app initialized");
+            
+            const supported = await isSupported();
+            addLog(`Firebase messaging supported: ${supported}`);
+            
+            if (!supported) {
+                addLog("❌ Firebase messaging not supported in this environment");
+                return;
+            }
+            
+            const messaging = getMessaging(app);
+            addLog("✅ Firebase messaging instance created");
+            
+            if (permission !== 'granted') {
+                addLog("❌ Cannot get token without notification permission");
+                return;
+            }
+            
+            // Register service worker
+            if ('serviceWorker' in navigator) {
+                addLog("Registering service worker...");
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                addLog("✅ Service worker registered");
+                
+                // Get token
+                addLog("Getting FCM token with hardcoded config...");
+                const token = await getToken(messaging, {
+                    vapidKey: vapidKey,
+                    serviceWorkerRegistration: registration
+                });
+                
+                if (token) {
+                    addLog(`✅ Direct FCM token: ${token.substring(0, 30)}...`);
+                    setToken(token);
+                } else {
+                    addLog("❌ No token received from direct Firebase call");
+                }
+            } else {
+                addLog("❌ Service worker not supported");
+            }
+            
+        } catch (error) {
+            addLog(`❌ Direct Firebase test failed: ${error}`);
+            console.error('Direct Firebase test error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const runAllTests = async () => {
         setLogs([]);
         testEnvironmentVariables();
         await testPermission();
         await testFCMToken();
+        await testFirebaseDirectly();
     };
 
     const clearLogs = () => {
@@ -190,6 +292,13 @@ export default function DebugFirebasePage() {
                                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
                             >
                                 Test FCM Token
+                            </button>
+                            <button
+                                onClick={testFirebaseDirectly}
+                                disabled={loading}
+                                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
+                            >
+                                Test Direct Firebase
                             </button>
                             <button
                                 onClick={clearLogs}
