@@ -46,7 +46,6 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
         icon: 'Target',
         color: categoryColors.custom
     });
-    const [localError, setLocalError] = useState<string>('');
 
     // Filter out already added predefined habits
     const availablePredefinedHabits = predefinedHabits.filter(habit =>
@@ -130,6 +129,17 @@ export const AddHabitModal: React.FC<AddHabitModalProps> = ({
                                 <X className="w-6 h-6 text-gray-600" />
                             </button>
                         </motion.div>
+
+                        {/* Error Display */}
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg"
+                            >
+                                <p className="text-sm text-red-700">{error}</p>
+                            </motion.div>
+                        )}
 
                         {/* Tabs */}
                         <motion.div
