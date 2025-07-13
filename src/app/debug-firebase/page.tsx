@@ -89,10 +89,19 @@ export default function DebugFirebasePage() {
             if (Notification.permission === 'default') {
                 addLog("Requesting permission...");
                 const granted = await requestNotificationPermission();
+                const newPermission = Notification.permission;
                 addLog(`Permission result: ${granted ? 'granted' : 'denied'}`);
-                setPermission(granted ? 'granted' : 'denied');
+                addLog(`Browser permission state: ${newPermission}`);
+                setPermission(newPermission);
+                
+                if (newPermission === "granted" as NotificationPermission) {
+                    addLog("✅ Permission successfully granted!");
+                } else {
+                    addLog("❌ Permission was denied");
+                }
             } else {
                 addLog("✅ Permission already granted");
+                setPermission(Notification.permission);
             }
             
         } catch (error) {
@@ -107,8 +116,14 @@ export default function DebugFirebasePage() {
         setLoading(true);
         
         try {
-            if (permission !== 'granted') {
+            // Check permission again in real-time
+            const currentPermission = Notification.permission;
+            addLog(`Current permission state: ${currentPermission}`);
+            addLog(`Component permission state: ${permission}`);
+            
+            if (currentPermission !== 'granted') {
                 addLog("❌ Cannot get token without permission");
+                addLog("Please click 'Test Permission' first to grant permission");
                 setLoading(false);
                 return;
             }
@@ -178,8 +193,14 @@ export default function DebugFirebasePage() {
             const messaging = getMessaging(app);
             addLog("✅ Firebase messaging instance created");
             
-            if (permission !== 'granted') {
+            // Check permission again in real-time
+            const currentPermission = Notification.permission;
+            addLog(`Current permission state: ${currentPermission}`);
+            addLog(`Component permission state: ${permission}`);
+            
+            if (currentPermission !== 'granted') {
                 addLog("❌ Cannot get token without notification permission");
+                addLog("Please click 'Test Permission' first to grant permission");
                 return;
             }
             
@@ -299,6 +320,16 @@ export default function DebugFirebasePage() {
                                 className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
                             >
                                 Test Direct Firebase
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setPermission(Notification.permission);
+                                    addLog(`Updated permission state to: ${Notification.permission}`);
+                                }}
+                                disabled={loading}
+                                className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:opacity-50"
+                            >
+                                Refresh Permission
                             </button>
                             <button
                                 onClick={clearLogs}
