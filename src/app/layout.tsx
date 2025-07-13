@@ -14,6 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  icons:{
+    icon: "/favicon.png",
+  },
   title: "Restrain Yourself - Habit Tracker",
   description: "A comprehensive habit tracking application to help you build better habits and break unwanted ones. Track your progress, view motivational content, and analyze your patterns.",
   viewport: "width=device-width, initial-scale=1.0, viewport-fit=cover",

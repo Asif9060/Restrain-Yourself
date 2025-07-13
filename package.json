@@ -1,34 +1,44 @@
 {
-  "name": "restrain-yourself",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@headlessui/react": "^2.2.4",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/supabase-js": "^2.50.3",
-    "date-fns": "^4.1.0",
-    "framer-motion": "^12.23.0",
-    "lucide-react": "^0.525.0",
-    "next": "15.3.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "recharts": "^3.0.2"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.5",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+   "name": "restrain-yourself",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "next lint",
+      "setup:notifications": "node scripts/setup-notifications.js"
+   },
+   "dependencies": {
+      "@headlessui/react": "^2.2.4",
+      "@supabase/auth-helpers-nextjs": "^0.10.0",
+      "@supabase/supabase-js": "^2.50.3",
+      "@types/node-schedule": "^2.1.8",
+      "@types/web-push": "^3.6.4",
+      "date-fns": "^4.1.0",
+      "dotenv": "^17.2.0",
+      "firebase": "^11.10.0",
+      "firebase-admin": "^13.4.0",
+      "framer-motion": "^12.23.0",
+      "lucide-react": "^0.525.0",
+      "next": "15.3.5",
+      "node-cron": "^4.2.1",
+      "node-schedule": "^2.1.1",
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0",
+      "recharts": "^3.0.2",
+      "web-push": "^3.6.7"
+   },
+   "devDependencies": {
+      "@eslint/eslintrc": "^3",
+      "@tailwindcss/postcss": "^4",
+      "@types/node": "^20",
+      "@types/react": "^19",
+      "@types/react-dom": "^19",
+      "eslint": "^9",
+      "eslint-config-next": "15.3.5",
+      "tailwindcss": "^4",
+      "tsx": "^4.20.3",
+      "typescript": "^5"
+   }
 }
